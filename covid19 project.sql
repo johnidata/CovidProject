@@ -61,6 +61,7 @@ order by totaldeathcount desc
 
 
 --GLOBAL NUMBERS
+--shows the total number of cases, deaths and percentage of deaths to cases
 select SUM(new_cases) as totalnewcases, SUM(new_deaths) as totalnewdeaths,
 	SUM(new_deaths)/NULLIF(SUM(new_cases),0)* 100 as DeathPercentage
 FROM CovidDeaths
@@ -69,6 +70,7 @@ where continent is not null
 order by 1,2
 
 --total population vs vaccination
+--shows the number of people vaccinated each day by adding the number from the previous day.
 select cd.continent,cd.location,cd.date,population,cv.new_vaccinations,
 SUM(cv.new_vaccinations) OVER (Partition by cd.location order by cd.location,cd.date) as RollingPeopleVaccinated
 from CovidDeaths cd
@@ -78,7 +80,7 @@ Join CovidVaccinations cv
 where cd.continent is not null
 order by 1,2,3
 
---using CTE
+--using CTE to help calculate the percentage of rollingpeoplevaccinated of the population
 WITH popvsvac(Continent,Location,date,population,new_vaccinations,RollingPeopleVaccinated)
 as
 (
@@ -98,7 +100,7 @@ from popvsvac
 
 
 --USING TEMP TABLE
-DROP TABLE IF EXISTS #PercentPopulationVaccinated
+DROP TABLE IF EXISTS #PercentPopulationVaccinated --this line helps rerun the query below incase theres a change in the query
 CREATE TABLE #PercentPopulationVaccinated
 (
 continent nvarchar(255),
@@ -123,7 +125,7 @@ select *, (rollingpeoplevaccinated/population)*100
 from #PercentPopulationVaccinated
 
 
-
+--creating a view of the above query for visualisation
 CREATE VIEW PercentPopulationVaccinated AS
 select cd.continent,cd.location,cd.date,population,cv.new_vaccinations,
 SUM(cv.new_vaccinations) OVER (Partition by cd.location order by cd.location,cd.date) as RollingPeopleVaccinated
